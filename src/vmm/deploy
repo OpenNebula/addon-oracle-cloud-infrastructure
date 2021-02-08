@@ -1,0 +1,43 @@
+#!/usr/bin/env ruby
+
+ONE_LOCATION = ENV['ONE_LOCATION'] if !defined?(ONE_LOCATION)
+
+if !ONE_LOCATION
+    RUBY_LIB_LOCATION = '/usr/lib/one/ruby' if !defined?(RUBY_LIB_LOCATION)
+    #GEMS_LOCATION     = '/usr/share/one/gems' if !defined?(GEMS_LOCATION)
+else
+    RUBY_LIB_LOCATION = ONE_LOCATION + '/lib/ruby' if !defined?(RUBY_LIB_LOCATION)
+    #GEMS_LOCATION     = ONE_LOCATION + '/share/gems' if !defined?(GEMS_LOCATION)
+end
+
+=begin
+if File.directory?(GEMS_LOCATION)
+    $LOAD_PATH.reject! {|l| l =~ /vendor_ruby/ }
+    require 'rubygems'
+    Gem.use_paths(File.realpath(GEMS_LOCATION))
+end
+=end
+
+$LOAD_PATH << RUBY_LIB_LOCATION
+$LOAD_PATH << File.dirname(__FILE__)
+
+require 'oci_driver'
+require 'opennebula'
+
+dfile = ARGV[0]
+host  = ARGV[1]
+id    = ARGV[2]
+
+begin
+    vm = OpenNebula::VirtualMachine.new_with_id(id, OpenNebula::Client.new)
+    vm.info
+    lcm_state = vm.lcm_state_str
+    deploy_id = vm.deploy_id
+
+    text = File.read(dfile)
+    oci_drv = OCIDriver.new(host)
+    puts oci_drv.deploy(id, host, text, lcm_state, deploy_id)
+
+rescue => e
+    OpenNebula.handle_driver_exception("Deploy", e, host, deploy_id, id, dfile)
+end
