@@ -8,18 +8,18 @@
  Use XML syntax to specify defaults, note elements are UPPERCASE
  Example:
  <TEMPLATE>
-   <OCI>
-     <AVAILABILITY_DOMAIN></AVAILABILITY_DOMAIN>
-    <COMPARTMENT_ID></COMPARTMENT_ID>
-    <SHAPE></SHAPE>
-    <SUBNET_ID></SUBNET_ID>
-    <SSH_KEY></SSH_KEY>
-    <REGION>ashburn</REGION>
+    <OCI>
+        <AVAILABILITY_DOMAIN></AVAILABILITY_DOMAIN>
+        <COMPARTMENT_ID></COMPARTMENT_ID>
+        <SHAPE></SHAPE>
+        <SUBNET_ID></SUBNET_ID>
+        <SSH_KEY></SSH_KEY>
+        <REGION>ashburn</REGION>
     
-    #optional attributes
-    <IMAGE_ID></IMAGE_ID>
-    <ASSIGN_PUBLIC_IP></ASSIGN_PUBLIC_IP>
-    <DISPLAY_NAME></DISPLAY_NAME>
-   </OCI>
+        #optional attributes
+        <IMAGE_ID></IMAGE_ID>
+        <ASSIGN_PUBLIC_IP></ASSIGN_PUBLIC_IP>
+        <DISPLAY_NAME></DISPLAY_NAME>
+    </OCI>
  </TEMPLATE>
 -->
