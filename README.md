@@ -7,8 +7,7 @@
 This cloud bursting driver helps the user combine local resources of their private cloud with resources from OCI. It allows deploying Virtual Machines seamlessly on OCI.
 
 ## Development
-
-...
+To contribute bug patches or new features, you can use the github Pull Request model. It is assumed that code and documentation are contributed under the Apache License 2.0.
 
 ## Authors
 
@@ -41,8 +40,8 @@ This cloud bursting driver helps the user combine local resources of their priva
 
 The OCI driver uses two configuration files:
 
-* /etc/one/sl_driver.conf: Configures access to OCI.
-* /etc/one/sl_driver.default: Default values for templates deployed in OCI.
+* /etc/one/oci_driver.conf: Configures access to OCI.
+* /etc/one/oci_driver.default: Default values for templates deployed in OCI.
 
 ## Usage
 
