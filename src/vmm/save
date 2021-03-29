@@ -1,20 +1,2 @@
-#!/usr/bin/env ruby
-
-ONE_LOCATION = ENV["ONE_LOCATION"] if !defined?(ONE_LOCATION)
-
-if !ONE_LOCATION
-    RUBY_LIB_LOCATION = "/usr/lib/one/ruby" if !defined?(RUBY_LIB_LOCATION)
-else
-    RUBY_LIB_LOCATION = ONE_LOCATION + "/lib/ruby" if !defined?(RUBY_LIB_LOCATION)
-end
-
-$: << RUBY_LIB_LOCATION
-$: << File.dirname(__FILE__)
-
-require 'oci_driver'
-
-deploy_id = ARGV[0]
-host = ARGV[1]
-
-oci_drv = OCIDriver.new(host)
-oci_drv.save(deploy_id)
+SCRIPT_NAME=$(basename $0)
+echo "Action $SCRIPT_NAME not supported" 1>&2

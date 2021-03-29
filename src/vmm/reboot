@@ -16,5 +16,9 @@ require 'oci_driver'
 deploy_id = ARGV[0]
 host = ARGV[1]
 
-oci_drv = OCIDriver.new(host)
-oci_drv.reboot(deploy_id)
+begin
+    oci_drv = OCIDriver.new(host)
+    oci_drv.reboot(deploy_id)
+rescue => e
+    OpenNebula.handle_driver_exception("Reboot", e, host, deploy_id)
+end

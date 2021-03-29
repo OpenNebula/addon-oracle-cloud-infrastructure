@@ -13,8 +13,13 @@ $: << File.dirname(__FILE__)
 
 require 'oci_driver'
 
+checkpoint_file = ARGV[0]
 host = ARGV[1]
 deploy_id = ARGV[2]
 
-oci_drv = OCIDriver.new(host)
-oci_drv.restore(deploy_id)
+begin
+    oci_drv = OCIDriver.new(host)
+    oci_drv.restore(deploy_id)
+rescue Exception => e
+    OpenNebula.handle_driver_exception("Restore", e, host, deploy_id)
+end
