@@ -25,7 +25,7 @@ To contribute bug patches or new features, you can use the github Pull Request m
 
 * [Ruby SDK for OCI](https://rubygems.org/gems/oci/versions/2.0.4)
 * [Nokogiri](https://rubygems.org/gems/nokogiri/versions/1.11.2)
-* An Oracle Cloud Infrastructure account. (Start with a Free Trial / Always Free Oracle Cloud account. Click [here] for details (https://www.oracle.com/cloud/free/#always-free).
+* An Oracle Cloud Infrastructure account. (Start with a Free Trial / Always Free Oracle Cloud account. Click [here](https://www.oracle.com/cloud/free/#always-free) for details.
 * An OCI user in a group with a policy that grants the desired permissions.
 * A keypair used for signing API requests, with the public key uploaded to OCI. 
 
