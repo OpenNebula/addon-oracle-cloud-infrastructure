@@ -2,7 +2,7 @@
 
 ## Description
 
-[Oracle Cloud Infrastructure](https://www.oracle.com/cloud/) (OCI) is an IaaS that delivers on-premises, high-performance computing power to run cloud native and enterprise company’s IT workloads. OCI provides real-time elasticity for enterprise applications by combining Oracle's autonomous services, integrated security, and serverless compute. Available for public cloud.
+[Oracle Cloud Infrastructure](https://www.oracle.com/cloud/) (OCI) is Oracle's cloud offering providing servers, storage, network, applications and services through a global network of Oracle managed data centers to run cloud native and enterprise company’s IT workloads. OCI provides real-time elasticity for enterprise applications by combining Oracle's autonomous services, integrated security, and serverless compute. 
 
 This cloud bursting driver helps the user combine local resources of their private cloud with resources from OCI. It allows deploying Virtual Machines seamlessly on OCI.
 
@@ -27,7 +27,7 @@ To contribute bug patches or new features, you can use the github Pull Request m
 * [Nokogiri](https://rubygems.org/gems/nokogiri/versions/1.11.2)
 * An Oracle Cloud Infrastructure account. (Start with a Free Trial / Always Free Oracle Cloud account. Click [here](https://www.oracle.com/cloud/free/#always-free) for details.
 * An OCI user in a group with a policy that grants the desired permissions.
-* A keypair used for signing API requests, with the public key uploaded to OCI. 
+* A keypair used for signing API requests, with the public key uploaded to OCI.
 
 Note: The user whose credentials are being used, needs to have the required permissions to create the specified instance shape in the specified compartment in the specified region. The instance shape must be available and must have availability, as per quota policies and tenancy limits.
 
@@ -35,9 +35,9 @@ Note: The user whose credentials are being used, needs to have the required perm
 
 To install this add-on, please follow the following steps:
 1. Clone this repository and run install.sh:
-    
+
     sudo ./install.sh -u oneadmin -g oneadmin
-    
+
 2. Add the following section to the file '/etc/one/oned.conf'
 
         #OCI
@@ -46,7 +46,7 @@ To install this add-on, please follow the following steps:
             executable = "one_vmm_sh",
             arguments  = "-t 15 -r 0 oci",
             type       = "xml" ]
-            
+
 3. Add the following section to the file '/etc/one/monitord.conf'
 
         #OCI
@@ -54,7 +54,7 @@ To install this add-on, please follow the following steps:
             name       = "oci",
             executable = "one_im_sh",
             arguments  = "-c -t 1 -r 0 oci" ]
-            
+
 
 ## Configuration
 
@@ -67,19 +67,19 @@ The OCI driver uses two configuration files:
 
 The file oci_driver.conf has the following 3 sections:
 1. **Host** - In this section you can list the hosts that you wish to use. There is no limit on the number of hosts you can list. Each host is defined by the following details:
-    * Tenancy OCID 
+    * Tenancy OCID
     * User OCID
     * User Fingerprint
     * Path to PEM key file
     * Region - The OCI region in which the instance will be created. The region will be one of those mentioned in the regions section below.
     * Capacity - The capacity section is used by OpenNebula to calculate the host capacity. Every instance mentioned in the instance_types section (more on that below) needs to have an entry such as this:  Shape: Count.
-    
+
     In this case, Opennebula will compute the host capacity by multiplying the number of cpus used by the shape with the given count and then taking a sum over all the shapes. Opennebula will do the same thing for memory.
-    
+
     The thing to note is that the count given for each shape doesn't limit you to that many instances of the shape. You could create more instances of that shape using the driver, as long as the used capacity does not exceed the total capacity, as calculated above.
-    
-    A host entry would look similar to the following 
-    
+
+    A host entry would look similar to the following
+
             <host_name>:
                 :tenancy: <tenancy_ocid>
                 :user: <user_ocid>
@@ -107,7 +107,7 @@ The file oci_driver.conf has the following 3 sections:
                     VM.GPU3.1: 0
                     VM.GPU3.2: 0
                     VM.GPU3.4: 0
-    
+
 2. **Regions** - A dictionary of regions currently available on OCI. This section lets you use a short name of the region rather than the full name understood by OCI. In the future, if a new region becomes available, you will have to create a new entry in the file in order to use the region. Please note that your OCI tenancy needs to be subscribed to a region to use it. Simply mentioning the region in the file does not subscribe your tenancy to it.
 
 3. **Instance_types** - A dictionary of Instance Types or shapes that you want to use on OCI. Each instance has the associated cpu count and memory size in GB. Unless a shape is listed here, you will not be able to spin it up in OCI using the driver. Therefore, in the future, if a new shape becomes available, you will be responsible for creating an entry for it in this section. Same goes for removing entries of retiring shapes and updating the cpu or memory of a shape, if Oracle changes the associated value.
@@ -135,7 +135,7 @@ onehost create <host_name> --im oci --vm oci
 
 ### OCI Specific Template Attributes
 
-In order to deploy an instance in OCI through OpenNebula you must include an PUBLIC_CLOUD section in the virtual machine template. 
+In order to deploy an instance in OCI through OpenNebula you must include an PUBLIC_CLOUD section in the virtual machine template.
 
 A sample template is given below:
 

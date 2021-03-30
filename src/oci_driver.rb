@@ -1,27 +1,5 @@
 #!/usr/bin/env ruby
 
-=begin
-ONE_LOCATION ||= ENV['ONE_LOCATION'] unless defined? ONE_LOCATION
-
-if !ONE_LOCATION
-    RUBY_LIB_LOCATION ||= '/usr/lib/one/ruby'
-    GEMS_LOCATION     ||= '/usr/share/one/gems'
-    ETC_LOCATION      ||= '/etc/one'
-    VAR_LOCATION      ||= '/var/lib/one'
-else
-    RUBY_LIB_LOCATION ||= ONE_LOCATION + '/lib/ruby'
-    GEMS_LOCATION     ||= ONE_LOCATION + '/share/gems'
-    ETC_LOCATION      ||= ONE_LOCATION + '/etc'
-    VAR_LOCATION      ||= ONE_LOCATION + '/var'
-end
-
-if File.directory?(GEMS_LOCATION)
-    $LOAD_PATH.reject! {|l| l =~ /vendor_ruby/ }
-    require 'rubygems'
-    Gem.use_paths(File.realpath(GEMS_LOCATION))
-end
-=end
-
 ONE_LOCATION = ENV["ONE_LOCATION"] if !defined?(ONE_LOCATION)
 
 if !ONE_LOCATION
@@ -48,23 +26,10 @@ require 'date'
 require 'CommandManager'
 require 'scripts_common'
 require 'VirtualMachineDriver'
-#require 'PublicCloudDriver'
 require 'opennebula'
 
 # The main class for the OCI driver
 class OCIDriver
-
-    # Constants
-    
-    #ACTION          = VirtualMachineDriver::ACTION
-    
-    #POLL_ATTRIBUTE  = VirtualMachineDriver::POLL_ATTRIBUTE
-
-    #VM_STATE        = VirtualMachineDriver::VM_STATE
-
-    
-    # Key that will be used to store the monitoring information in the template
-    #OCI_MONITOR_KEY = "OCIDRIVER_MONITOR"
 
     MONITOR_METRICS = [
         'CpuUtilization',
@@ -87,12 +52,12 @@ class OCIDriver
         'DiskIopsRead' => 'DISKRDIOPS',
         'DiskIopsWritten' => 'DISKWRIOPS'
         }
-    
+
     OCI_REQUIRED_PARAMS = %w[
 HOST
 SHAPE
 AVAILABILITY_DOMAIN
-COMPARTMENT_ID 
+COMPARTMENT_ID
 SUBNET_ID
 SSH_KEY
 IMAGE_ID
@@ -114,7 +79,7 @@ DISPLAY_NAME
         'TERMINATING'  => 'd',
         'TERMINATED'   => 'd'
         }
-    
+
     CPUSPEED = 2000 #Mhz
 
     # --------------------------------------------------------------------------
@@ -130,8 +95,8 @@ DISPLAY_NAME
 
         @instance_types = @oci_config_file[:instance_types]
         @to_inst = {}
-	
-	
+
+
         @host_capacity = @oci_config_file[@host][:capacity]
 
         @instance_types.keys.each do |key|
@@ -149,17 +114,6 @@ DISPLAY_NAME
         @oci_config.validate
 
         @compute_client = OCI::Core::ComputeClient.new(config: @oci_config)
-        #Testing connectivity
-=begin 
-        api = OCI::Identity::IdentityClient.new(config: @oci_config, region: OCI::Regions::REGION_US_PHOENIX_1)
-        response = api.list_users(@oci_config.tenancy)
-        response.data.each { |user| puts user.name }
-        
-        #subscribed_regions = get_subscribed_regions
-        #subscribed_regions.data.each do |region| 
-            #puts region.region_key.downcase
-        #end
-=end
 
         load_default_template_values
 
@@ -200,7 +154,7 @@ DISPLAY_NAME
             request.image_id = opts['IMAGE_ID']
             request.shape = opts['SHAPE']
             request.subnet_id = opts['SUBNET_ID']
-            request.metadata = { 'ssh_authorized_keys' => opts['SSH_KEY']} 
+            request.metadata = { 'ssh_authorized_keys' => opts['SSH_KEY']}
             request.freeform_tags = {'OpenNebula' => ''+id.to_s}
             launch_instance_response = @compute_client.launch_instance(request)
             instance = launch_instance_response.data
@@ -269,7 +223,7 @@ DISPLAY_NAME
     # Reboot an OCI instance
     def reboot(deploy_id)
         status = check_instance_existence(deploy_id)
-	if status == "RUNNING" 
+	if status == "RUNNING"
             begin
             	@compute_client.instance_action(deploy_id,'RESET')
             rescue => e
@@ -282,7 +236,7 @@ DISPLAY_NAME
     # Cancel an OCI instance
     def cancel(deploy_id)
         status = check_instance_existence(deploy_id)
-	if status != "TERMINATING" and status!= "TERMINATED" 
+	if status != "TERMINATING" and status!= "TERMINATED"
             begin
             	@compute_client.terminate_instance(deploy_id)
             rescue => e
@@ -358,7 +312,7 @@ DISPLAY_NAME
 
         data=""
 
-        results.data.items.each do |result|  
+        results.data.items.each do |result|
             data << "VM = [ ID=\"#{result.freeform_tags['OpenNebula']}\", DEPLOY_ID=\"#{result.identifier}\", UUID=\"#{result.identifier}\", STATE=\"#{result.lifecycle_state}\" ]\n"
 
         end
@@ -375,15 +329,15 @@ DISPLAY_NAME
 
         data=""
 
-        results.data.items.each do |result| 
+        results.data.items.each do |result|
             instance_details = @compute_client.get_instance(result.identifier).data
             metrics_dict, state, timestamp = parse_poll(instance_details, result.identifier)
 
             metrics = ""
             metrics << "TIMESTAMP=\"#{timestamp}\"\n"
 
-            metrics_dict.each do |metric, value|  
-                metrics << "#{metric}=\"#{value}\"\n" 
+            metrics_dict.each do |metric, value|
+                metrics << "#{metric}=\"#{value}\"\n"
             end
             metrics = Base64.encode64(metrics)
             metrics = metrics.gsub("\n","")
@@ -406,8 +360,8 @@ DISPLAY_NAME
         metrics, state, timestamp = parse_poll(instance_details, deploy_id)
 
         data << "STATE=#{state} "
-        metrics.each do |metric, value|  
-            data << "#{metric}=#{value} " 
+        metrics.each do |metric, value|
+            data << "#{metric}=#{value} "
         end
 
         data
@@ -423,17 +377,14 @@ DISPLAY_NAME
         oci = nil
 
         all_oci_elements = xml.root.get_elements("//USER_TEMPLATE/PUBLIC_CLOUD")
-        #all_oci_elements = xml.root.get_elements("//ROOT/PUBLIC_CLOUD")     #For testing. Actual uses user_template/public_cloud
 
         all_oci_elements = all_oci_elements.select { |element|
             element.elements["TYPE"].text.downcase.eql? "oci"
             }
 
-        #puts host
+
         # Select the correct OCI host from the template if it exists
         all_oci_elements.each { |element|
-            #puts "this" 
-            #puts element
             cloud_host = element.elements["HOST"]
             type       = element.elements["TYPE"].text
 
@@ -443,12 +394,12 @@ DISPLAY_NAME
             }
 
         if !oci
-            raise 
+            raise
             "Cannot find OCI host information in VM template "\
                 "or ambigous definition of OCI templates "
         end
 
-        oci      
+        oci
     end
 
 
@@ -464,27 +415,22 @@ DISPLAY_NAME
 
         worker = OCI::Monitoring::MonitoringClient.new(config: @oci_config, region: @oci_config.region)
 
-        #metrics['STATE'] = STATE_MAP[instance_details.lifecycle_state]
-
         if instance_details.lifecycle_state == 'RUNNING'
             begin
 		    MONITOR_METRICS.each do |metric|
 		        metrics_detail.query = metric+'[1h]{resourceId = "' +deploy_id+'"}.mean()'
 		        metrics_response = worker.summarize_metrics_data(instance_details.compartment_id, metrics_detail)
 		        metrics[MONITOR_METRICS_DICT[metrics_response.data[0].name]] = metrics_response.data[0].aggregated_datapoints[0].value
-		        #print metrics_response.data[0].name + ": " 
-		        #puts metrics_response.data[0].aggregated_datapoints[0].value
+
 		    end
             rescue => e
             	MONITOR_METRICS.each do |metric|
                 	metrics[MONITOR_METRICS_DICT[metric]] = 0
-                	#print metric+ ": 0\n"
             	end
             end
         else
             MONITOR_METRICS.each do |metric|
                 metrics[MONITOR_METRICS_DICT[metric]] = 0
-                #print metric+ ": 0\n"
             end
         end
 
@@ -529,10 +475,6 @@ DISPLAY_NAME
                 @defaults[item] = value_from_xml(oci, item)
             end
 
-            """@defaults.each do |key, value|
-puts key +\" :\" + value
-end"""
-
         end
     end
 
@@ -559,9 +501,9 @@ end"""
                 total_memory += @instance_types[@to_inst[key]]['memory']
                 x-=1
             end
-            #puts @to_inst[key] + ", " + @host_capacity[@to_inst[key]].to_s + ", " + @instance_types[@to_inst[key]].to_s + "\n"
+
         end
-        #puts "#{total_memory}, "+total_cpu.to_s
+
         [total_cpu, total_memory]
     end
 
@@ -605,5 +547,3 @@ end"""
 end
 
 obj = OCIDriver.new('default')
-#obj.deploy(20, 'default', File.read('/home/ubuntu/opennebula/src/etc/vm_template.one'), 'BOOT', 23)
-
