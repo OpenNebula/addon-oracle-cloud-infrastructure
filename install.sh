@@ -10,12 +10,6 @@ usage() {
  echo "-h: prints this help"
 }
 
-do_file() {
-    echo $1 $2
-    #cp -R $SRC_DIR/$1 $2
-    
-}
-
 copy_files() {
     FILES=$1
     DST=$DESTDIR$2
@@ -72,7 +66,9 @@ else
     RUBY_LIB_LOCATION=ONE_LOCATION+"/lib/ruby"
 fi
 
-copy_files "im/" "$REMOTES_LOCATION/im/"
-copy_files "vmm/" "$REMOTES_LOCATION/vmm/"
+mkdir $REMOTES_LOCATION/vmm/oci/
+
+copy_files "im/*" "$REMOTES_LOCATION/im/"
+copy_files "vmm/*" "$REMOTES_LOCATION/vmm/oci/"
 copy_files "oci_driver.rb" "$RUBY_LIB_LOCATION"
-copy_files "etc/" "$ETC_LOCATION"
+copy_files "etc/*" "$ETC_LOCATION"
