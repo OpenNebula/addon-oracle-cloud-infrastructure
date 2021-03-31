@@ -1,7 +1,7 @@
 <!--
  Default configuration attributes for the Oracle Cloud Infrastructure driver
  Valid attributes are: HOST, AVAILABILITY_DOMAIN, COMPARTMENT_ID, SHAPE,
- SUBNET_ID, IMAGE_ID, ASSIGN_PUBLIC_IP, DISPLAY_NAME, SSH_KEY
+ SUBNET_ID, IMAGE_ID, ASSIGN_PUBLIC_IP, DISPLAY_NAME, FAULT_DOMAIN, SSH_KEY
 
  Use XML syntax to specify defaults, note elements are UPPERCASE
  Example:
@@ -18,6 +18,7 @@
         #optional attributes
         <ASSIGN_PUBLIC_IP></ASSIGN_PUBLIC_IP>
         <DISPLAY_NAME></DISPLAY_NAME>
+        <FAULT_DOMAIN></FAULT_DOMAIN>
     </OCI>
  </TEMPLATE>
 -->
