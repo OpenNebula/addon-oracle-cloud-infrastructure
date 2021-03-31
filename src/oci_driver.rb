@@ -57,7 +57,7 @@ class OCIDriver
 HOST
 SHAPE
 AVAILABILITY_DOMAIN
-COMPARTMENT_ID
+COMPARTMENT_ID 
 SUBNET_ID
 SSH_KEY
 IMAGE_ID
@@ -114,7 +114,7 @@ DISPLAY_NAME
         @oci_config.validate
 
         @compute_client = OCI::Core::ComputeClient.new(config: @oci_config)
-
+        
         load_default_template_values
 
     end
@@ -154,8 +154,8 @@ DISPLAY_NAME
             request.image_id = opts['IMAGE_ID']
             request.shape = opts['SHAPE']
             request.subnet_id = opts['SUBNET_ID']
-            request.metadata = { 'ssh_authorized_keys' => opts['SSH_KEY']}
-            request.freeform_tags = {'OpenNebula' => ''+id.to_s}
+            request.metadata = { 'ssh_authorized_keys' => opts['SSH_KEY']} 
+            request.freeform_tags = {'OpenNebula' => ''+@host}
             launch_instance_response = @compute_client.launch_instance(request)
             instance = launch_instance_response.data
 
@@ -190,14 +190,14 @@ DISPLAY_NAME
     # Restart an OCI instance
     def restore(deploy_id)
         status = check_instance_existence(deploy_id)
-	if status != "STARTING" and status!= "RUNNING"
+        if status != "STARTING" and status!= "RUNNING"
             begin
-            	@compute_client.instance_action(deploy_id,'START')
+                @compute_client.instance_action(deploy_id,'START')
             rescue => e
-            	STDERR.puts e.message
-            	exit(-1)
+                STDERR.puts e.message
+                exit(-1)
             end
-	end
+        end
     end
 
     # Shutdown an OCI instance
@@ -206,14 +206,14 @@ DISPLAY_NAME
         begin
             case lcm_state
             when "SHUTDOWN"
-		if status != "TERMINATING" and status!= "TERMINATED"
-                	@compute_client.terminate_instance(deploy_id)
-		end
+                if status != "TERMINATING" and status!= "TERMINATED"
+                    @compute_client.terminate_instance(deploy_id)
+                end
             when "SHUTDOWN_POWEROFF", "SHUTDOWN_UNDEPLOY"
                 if status != "STOPPING" and status!= "STOPPED"
-			@compute_client.instance_action(deploy_id,'STOP')
-            	end
-	    end
+                    @compute_client.instance_action(deploy_id,'STOP')
+                end
+            end
         rescue => e
             STDERR.puts e.message
             exit(-1)
@@ -223,40 +223,40 @@ DISPLAY_NAME
     # Reboot an OCI instance
     def reboot(deploy_id)
         status = check_instance_existence(deploy_id)
-	if status == "RUNNING"
+        if status == "RUNNING" 
             begin
-            	@compute_client.instance_action(deploy_id,'RESET')
+                @compute_client.instance_action(deploy_id,'RESET')
             rescue => e
-            	STDERR.puts e.message
+                STDERR.puts e.message
                 exit(-1)
             end
-	end
+        end
     end
 
     # Cancel an OCI instance
     def cancel(deploy_id)
         status = check_instance_existence(deploy_id)
-	if status != "TERMINATING" and status!= "TERMINATED"
+        if status != "TERMINATING" and status!= "TERMINATED" 
             begin
-            	@compute_client.terminate_instance(deploy_id)
+                @compute_client.terminate_instance(deploy_id)
             rescue => e
-            	STDERR.puts e.message
-            	exit(-1)
+                STDERR.puts e.message
+                exit(-1)
             end
-	end
+        end
     end
 
     # Stop an OCI instance
     def save(deploy_id)
         status = check_instance_existence(deploy_id)
         if status != "STOPPING" and status!= "STOPPED"
-	    begin
-            	@compute_client.instance_action(deploy_id,'STOP')
+            begin
+                @compute_client.instance_action(deploy_id,'STOP')
             rescue => e
-            	STDERR.puts e.message
-            	exit(-1)
+                STDERR.puts e.message
+                exit(-1)
             end
-	end
+        end
     end
 
 
@@ -265,7 +265,7 @@ DISPLAY_NAME
         total_cpu, total_memory = get_host_capacity
 
         total_cpu *= 100
-	total_memory *=(1024*1024)
+        total_memory *=(1024*1024)
 
         data = "HYPERVISOR=#{@hypervisor}\n"
         data << "PUBLIC_CLOUD=YES\n"
@@ -287,8 +287,8 @@ DISPLAY_NAME
         total_cpu *= 100
         used_cpu *= 100
 
-	total_memory *=(1024*1024)
-	used_memory *=(1024*1024)
+        total_memory *=(1024*1024)
+        used_memory *=(1024*1024)
         bandwidth *= (125000000/2)
 
         data = "HYPERVISOR=#{@hypervisor}\n"
@@ -306,13 +306,15 @@ DISPLAY_NAME
 
 
     def probe_vm_status
-        query = "query instance resources where (freeformTags.key = 'Opennebula')"
+        query = "query instance resources where (freeformTags.key = 'Opennebula' && freeformTags.value = '"
+        query<<@host
+        query<<"')"
 
         results = oci_search(query)
 
         data=""
 
-        results.data.items.each do |result|
+        results.data.items.each do |result|  
             data << "VM = [ ID=\"#{result.freeform_tags['OpenNebula']}\", DEPLOY_ID=\"#{result.identifier}\", UUID=\"#{result.identifier}\", STATE=\"#{result.lifecycle_state}\" ]\n"
 
         end
@@ -323,21 +325,23 @@ DISPLAY_NAME
 
 
     def probe_vm_monitor
-        query = "query instance resources where (freeformTags.key = 'Opennebula')"
+        query = "query instance resources where (freeformTags.key = 'Opennebula' && freeformTags.value = '"
+        query<<@host
+        query<<"')"
 
         results = oci_search(query)
 
         data=""
 
-        results.data.items.each do |result|
+        results.data.items.each do |result| 
             instance_details = @compute_client.get_instance(result.identifier).data
             metrics_dict, state, timestamp = parse_poll(instance_details, result.identifier)
 
             metrics = ""
             metrics << "TIMESTAMP=\"#{timestamp}\"\n"
 
-            metrics_dict.each do |metric, value|
-                metrics << "#{metric}=\"#{value}\"\n"
+            metrics_dict.each do |metric, value|  
+                metrics << "#{metric}=\"#{value}\"\n" 
             end
             metrics = Base64.encode64(metrics)
             metrics = metrics.gsub("\n","")
@@ -360,8 +364,8 @@ DISPLAY_NAME
         metrics, state, timestamp = parse_poll(instance_details, deploy_id)
 
         data << "STATE=#{state} "
-        metrics.each do |metric, value|
-            data << "#{metric}=#{value} "
+        metrics.each do |metric, value|  
+            data << "#{metric}=#{value} " 
         end
 
         data
@@ -382,7 +386,6 @@ DISPLAY_NAME
             element.elements["TYPE"].text.downcase.eql? "oci"
             }
 
-
         # Select the correct OCI host from the template if it exists
         all_oci_elements.each { |element|
             cloud_host = element.elements["HOST"]
@@ -394,12 +397,12 @@ DISPLAY_NAME
             }
 
         if !oci
-            raise
+            raise 
             "Cannot find OCI host information in VM template "\
                 "or ambigous definition of OCI templates "
         end
 
-        oci
+        oci      
     end
 
 
@@ -417,16 +420,15 @@ DISPLAY_NAME
 
         if instance_details.lifecycle_state == 'RUNNING'
             begin
-		    MONITOR_METRICS.each do |metric|
-		        metrics_detail.query = metric+'[1h]{resourceId = "' +deploy_id+'"}.mean()'
-		        metrics_response = worker.summarize_metrics_data(instance_details.compartment_id, metrics_detail)
-		        metrics[MONITOR_METRICS_DICT[metrics_response.data[0].name]] = metrics_response.data[0].aggregated_datapoints[0].value
-
-		    end
+                MONITOR_METRICS.each do |metric|
+                    metrics_detail.query = metric+'[1m]{resourceId = "' +deploy_id+'"}.mean()'
+                    metrics_response = worker.summarize_metrics_data(instance_details.compartment_id, metrics_detail)
+                    metrics[MONITOR_METRICS_DICT[metrics_response.data[0].name]] = metrics_response.data[0].aggregated_datapoints[0].value
+                end
             rescue => e
-            	MONITOR_METRICS.each do |metric|
-                	metrics[MONITOR_METRICS_DICT[metric]] = 0
-            	end
+                MONITOR_METRICS.each do |metric|
+                    metrics[MONITOR_METRICS_DICT[metric]] = 0
+                end
             end
         else
             MONITOR_METRICS.each do |metric|
@@ -474,7 +476,6 @@ DISPLAY_NAME
             OCI_OPTIONAL_PARAMS.each do |item|
                 @defaults[item] = value_from_xml(oci, item)
             end
-
         end
     end
 
@@ -482,9 +483,9 @@ DISPLAY_NAME
     def check_instance_existence(id)
         begin
             instance = @compute_client.get_instance(id)
-	    instance.data.lifecycle_state
+            instance.data.lifecycle_state
         rescue => e
-	    STDERR.puts e
+            STDERR.puts e
             STDERR.puts "Instance #{id} does not exist"
             exit(-1)
         end
@@ -501,9 +502,7 @@ DISPLAY_NAME
                 total_memory += @instance_types[@to_inst[key]]['memory']
                 x-=1
             end
-
         end
-
         [total_cpu, total_memory]
     end
 
@@ -511,7 +510,9 @@ DISPLAY_NAME
     def get_host_usage
         used_memory = used_cpu = bandwidth = 0
 
-        query = "query instance resources where (freeformTags.key = 'Opennebula')"
+        query = "query instance resources where (freeformTags.key = 'Opennebula' && freeformTags.value = '"
+        query<<@host
+        query<<"')"
 
         results = oci_search(query)
 
