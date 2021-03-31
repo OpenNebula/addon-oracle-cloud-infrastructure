@@ -124,8 +124,9 @@ The driver defaults need to have certain values:
 5. SUBNET_ID - The OCID of the sub-network to be used for the virtual machine.
 6. SSH_KEY - The public ssh-key to be used to log into the system.
 7. IMAGE_ID - The OCID of the operating system image to be used for the system. The image can be a custom image.
-8. ASSIGN_PUBLIC_IP (Optional) - YES is the default value, but you could set it to NO.
+8. ASSIGN_PUBLIC_IP (Optional) - true is the default value, but you could set it to false.
 9. DISPLAY_NAME (Optional) - The display name of the instance in the OCI console.
+10. FAULT_DOMAIN (Optional) - Fault domain within the specified availability domain that should be used to host the virtual machine. Each availability domain contains three fault domains. For example: FAULT-DOMAIN-3.
 
 Note: OpenNebula needs to be restarted, once the configuration file is updated.
 
