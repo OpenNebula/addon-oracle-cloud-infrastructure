@@ -53,21 +53,21 @@ class OCIDriver
         'DiskIopsWritten' => 'DISKWRIOPS'
         }
 
-    OCI_REQUIRED_PARAMS = %w[
-HOST
-SHAPE
-AVAILABILITY_DOMAIN
-COMPARTMENT_ID 
-SUBNET_ID
-SSH_KEY
-IMAGE_ID
-]
+    OCI_REQUIRED_PARAMS = [
+	'HOST',
+	'SHAPE',
+	'AVAILABILITY_DOMAIN',
+	'COMPARTMENT_ID',
+	'SUBNET_ID',
+	'SSH_KEY',
+	'IMAGE_ID'
+	]
 
-    OCI_OPTIONAL_PARAMS = %w[
-ASSIGN_PUBLIC_IP
-FAULT_DOMAIN
-DISPLAY_NAME
-]
+    OCI_OPTIONAL_PARAMS = [
+	'ASSIGN_PUBLIC_IP',
+	'FAULT_DOMAIN',
+	'DISPLAY_NAME'
+	]
 
     #a = RUNNING   d = POWEROFF
     STATE_MAP = {
@@ -95,7 +95,6 @@ DISPLAY_NAME
 
         @instance_types = @oci_config_file[:instance_types]
         @to_inst = {}
-
 
         @host_capacity = @oci_config_file[@host][:capacity]
 
@@ -132,7 +131,6 @@ DISPLAY_NAME
             OCI_REQUIRED_PARAMS.each do |item|
                 opts[item] = value_from_xml(oci_info, item) || @defaults[item]
             end
-
 
             OCI_OPTIONAL_PARAMS.each do |item|
                 opts[item] = value_from_xml(oci_info, item) || @defaults[item]
@@ -357,7 +355,13 @@ DISPLAY_NAME
 
     # Get info (IP, and state) for an OCI instance
     def poll(id, deploy_id)
-        check_instance_existence(deploy_id)
+        status = check_instance_existence(deploy_id)
+        data = ""
+        
+        if status == nil
+            data
+        end
+            
         instance_details = @compute_client.get_instance(deploy_id).data
 
         data = ""
@@ -397,9 +401,9 @@ DISPLAY_NAME
             }
 
         if !oci
-            raise 
-            "Cannot find OCI host information in VM template "\
-                "or ambigous definition of OCI templates "
+            STDERR.puts("Cannot find OCI host information in VM template "\
+                 "or ambigous definition of OCI templates ")   
+            exit(-1) 
         end
 
         oci      
@@ -446,6 +450,7 @@ DISPLAY_NAME
     def value_from_xml(xml, name)
         if xml
             element = xml.elements[name]
+            
             element.text.strip if element && element.text
         end
     end
@@ -479,15 +484,17 @@ DISPLAY_NAME
         end
     end
 
+    
     # Retrieve the instance from OCI
     def check_instance_existence(id)
         begin
             instance = @compute_client.get_instance(id)
+            
             instance.data.lifecycle_state
         rescue => e
-            STDERR.puts e
             STDERR.puts "Instance #{id} does not exist"
-            exit(-1)
+            
+            nil
         end
     end
 
@@ -503,6 +510,7 @@ DISPLAY_NAME
                 x-=1
             end
         end
+        
         [total_cpu, total_memory]
     end
 
