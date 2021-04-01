@@ -28,6 +28,7 @@ require 'scripts_common'
 require 'VirtualMachineDriver'
 require 'opennebula'
 
+
 # The main class for the OCI driver
 class OCIDriver
 
@@ -122,12 +123,10 @@ class OCIDriver
     # Deploy an OCI instance
     def deploy(id, host, xml_text, lcm_state, deploy_id)
         if %w[BOOT BOOT_FAILURE].include?(lcm_state)
-            @defaults = load_default_template_values
-
             oci_info = get_deployment_info(host, xml_text)
 
             opts = {}
-
+            
             OCI_REQUIRED_PARAMS.each do |item|
                 opts[item] = value_from_xml(oci_info, item) || @defaults[item]
             end
@@ -139,7 +138,7 @@ class OCIDriver
             OCI_REQUIRED_PARAMS.each do |item|
                 if opts[item] == nil
                     STDERR.puts(
-                        "Missing "<<
+                        "Missing: "<<
                             item)
                     exit(-1)
                 end
@@ -153,9 +152,11 @@ class OCIDriver
             request.shape = opts['SHAPE']
             request.subnet_id = opts['SUBNET_ID']
             request.metadata = { 'ssh_authorized_keys' => opts['SSH_KEY']} 
-            request.freeform_tags = {'OpenNebula' => ''+@host}
+            request.freeform_tags = {'OpenNebula_Host' => ''+@host, 'OpenNebula_ID' => ''+id.to_s}
+
             launch_instance_response = @compute_client.launch_instance(request)
             instance = launch_instance_response.data
+
 
             begin
                 @compute_client.get_instance(instance.id)
@@ -168,7 +169,6 @@ class OCIDriver
                             STDERR.puts("Instance failed to provision. ")
                             exit(-1)
                         end
-
 
                     end
 
@@ -304,16 +304,16 @@ class OCIDriver
 
 
     def probe_vm_status
-        query = "query instance resources where (freeformTags.key = 'Opennebula' && freeformTags.value = '"
+        query = "query instance resources where (freeformTags.key = 'OpenNebula_Host' && freeformTags.value = '"
         query<<@host
-        query<<"')"
+        query<<"' && (LifecycleState != 'TERMINATED' && LifecycleState != 'TERMINATING'))"
 
         results = oci_search(query)
 
         data=""
 
         results.data.items.each do |result|  
-            data << "VM = [ ID=\"#{result.freeform_tags['OpenNebula']}\", DEPLOY_ID=\"#{result.identifier}\", UUID=\"#{result.identifier}\", STATE=\"#{result.lifecycle_state}\" ]\n"
+            data << "VM = [ ID=\"#{result.freeform_tags['OpenNebula_ID']}\", DEPLOY_ID=\"#{result.identifier}\", UUID=\"#{result.identifier}\", STATE=\"#{result.lifecycle_state}\" ]\n"
 
         end
 
@@ -323,9 +323,9 @@ class OCIDriver
 
 
     def probe_vm_monitor
-        query = "query instance resources where (freeformTags.key = 'Opennebula' && freeformTags.value = '"
+        query = "query instance resources where (freeformTags.key = 'Opennebula_Host' && freeformTags.value = '"
         query<<@host
-        query<<"')"
+        query<<"' && (LifecycleState != 'TERMINATED' && LifecycleState != 'TERMINATING'))"
 
         results = oci_search(query)
 
@@ -341,10 +341,11 @@ class OCIDriver
             metrics_dict.each do |metric, value|  
                 metrics << "#{metric}=\"#{value}\"\n" 
             end
+
             metrics = Base64.encode64(metrics)
             metrics = metrics.gsub("\n","")
 
-            data << "VM = [ ID =\"#{result.freeform_tags['OpenNebula']}\", UUID=\"#{result.identifier}\", MONITOR =\"#{metrics}\"]\n"
+            data << "VM = [ ID =\"#{result.freeform_tags['OpenNebula_ID']}\", UUID=\"#{result.identifier}\", MONITOR =\"#{metrics}\"]\n"
         end
 
         data
@@ -450,7 +451,6 @@ class OCIDriver
     def value_from_xml(xml, name)
         if xml
             element = xml.elements[name]
-            
             element.text.strip if element && element.text
         end
     end
@@ -481,7 +481,9 @@ class OCIDriver
             OCI_OPTIONAL_PARAMS.each do |item|
                 @defaults[item] = value_from_xml(oci, item)
             end
+            
         end
+
     end
 
     
@@ -489,11 +491,9 @@ class OCIDriver
     def check_instance_existence(id)
         begin
             instance = @compute_client.get_instance(id)
-            
             instance.data.lifecycle_state
         rescue => e
             STDERR.puts "Instance #{id} does not exist"
-            
             nil
         end
     end
@@ -518,9 +518,9 @@ class OCIDriver
     def get_host_usage
         used_memory = used_cpu = bandwidth = 0
 
-        query = "query instance resources where (freeformTags.key = 'Opennebula' && freeformTags.value = '"
+        query = "query instance resources where (freeformTags.key = 'Opennebula_Host' && freeformTags.value = '"
         query<<@host
-        query<<"')"
+        query<<"' && (LifecycleState != 'TERMINATED' && LifecycleState != 'TERMINATING'))"
 
         results = oci_search(query)
 
@@ -554,5 +554,3 @@ class OCIDriver
     end
 
 end
-
-obj = OCIDriver.new('default')
