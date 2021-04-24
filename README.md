@@ -118,7 +118,7 @@ The file oci_driver.conf has the following 3 sections:
 
 The driver defaults need to have certain values:
 1. **HOST** - The name of the host to be used for the virtual machine. This host must be defined in the configuration file.
-2. **AVAILABILITY_DOMAIN** - The availability domain in the host's region to be used for the instance. This has to be mentioned even for regions with 1 availability domain. For example: US-ASHBURN-AD-1, if the host's region is ashburn.
+2. **AVAILABILITY_DOMAIN** - The availability domain in the host's region to be used for the instance. This has to be mentioned even for regions with 1 availability domain. For example: <tenancy_identifier>:US-ASHBURN-AD-1, if the host's region is ashburn. The tenancy identifier is a 4 character identifier that is specific to a tenancy. It can be found in the tenancy on the [compute instance creation page](https://cloud.oracle.com/compute/instances/create). For more on availability domains, including a list of them, please visit [this](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/regions.htm) page.
 3. **COMPARTMENT_ID** - The OCID of the compartment where the virtual machine will be created.
 4. **SHAPE** - The default shape to be used for the virtual machine.
 5. **SUBNET_ID** - The OCID of the sub-network to be used for the virtual machine.
@@ -141,7 +141,7 @@ In order to deploy an instance in OCI through OpenNebula you must include an PUB
 A sample template is given below:
 
     PUBLIC_CLOUD=[
-       AVAILABILITY_DOMAIN = "kZAQ:US-ASHBURN-AD-1",
+       AVAILABILITY_DOMAIN = "<unique_identifier>:US-ASHBURN-AD-1",
        COMPARTMENT_ID = "<compartment_ocid>",
        DISPLAY_NAME = "Sample Instance 1",
        HOST = "<host_name>",
@@ -171,7 +171,7 @@ An example of a hybrid template:
     NIC=[NETWORK="public"]
     
     PUBLIC_CLOUD=[
-       AVAILABILITY_DOMAIN = "kZAQ:US-ASHBURN-AD-1",
+       AVAILABILITY_DOMAIN = "<unique_identifier>:US-ASHBURN-AD-1",
        COMPARTMENT_ID = "<compartment_ocid>",
        DISPLAY_NAME = "Sample Instance 1",
        HOST = "<host_name>",
